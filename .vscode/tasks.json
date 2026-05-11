@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Game (g++)",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        "-std=c++17",
+        "-finput-charset=UTF-8",
+        "-fexec-charset=UTF-8",
+        "-Wall",
+        "-Wextra",
+        "-O2",
+        "-I",
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/src/main.cpp",
+        "${workspaceFolder}/src/utils.cpp",
+        "${workspaceFolder}/src/cards.cpp",
+        "${workspaceFolder}/src/triad_grace.cpp",
+        "${workspaceFolder}/src/blackjack.cpp",
+        "-o",
+        "${workspaceFolder}/game.exe"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "Run Game",
+      "type": "shell",
+      "command": "${workspaceFolder}/game.exe",
+      "dependsOn": "Build Game (g++)",
+      "problemMatcher": []
+    }
+  ]
+}
