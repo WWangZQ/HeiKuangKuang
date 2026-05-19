@@ -5,8 +5,8 @@ using namespace std;
 
 const int G_W = 80;
 const int G_H = 25;
-int skill_num = 5;
-int chip_name = 5;
+int skill_num = 2;
+int chip_name = 2;
 
 static WORD g_defaultColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 static bool g_colorInited = false;

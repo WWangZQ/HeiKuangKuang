@@ -104,6 +104,8 @@ void startBlackJack(int current, int total) {
     int playerSum = 0, computerSum = 0;
     vector<int> playerCards, computerCards;
     bool playerStand = false, computerStand = false;
+    int playerLimit = 36;
+    const int computerLimit = 36;
 
     // 初始化洗牌：生成所有牌的下标并随机打乱
     vector<int> deck(CARD_COUNT);
@@ -120,26 +122,122 @@ void startBlackJack(int current, int total) {
     playerSum   = getCardValue(CARDS[playerCards[0]]);
     computerSum = getCardValue(CARDS[computerCards[0]]);
 
+    // 第四局限定技能：退掉刚摸到的牌（技能值足够可多次使用）
+    bool canRetreatLastDraw = false;
+    int lastDrawnPlayerCard = -1;
+    bool round3SkillAsked = false;
+
     while (true) {
         // --- 玩家回合 ---
         if (!playerStand) {
+            // 第三局限定技能：先问是否发动，再进行摸牌/停牌选择
+            if (current == 3 && !round3SkillAsked) {
+                round3SkillAsked = true;
+                if (skill_num > 0) {
+                    redraw(current, total, playerCards, playerSum, playerStand,
+                           computerCards, computerSum, computerStand,
+                           "是否发动限定技能(上限40)？Y=发动 N=不发动");
+                    while (true) {
+                        int k = _getch();
+                        if (k == 'Y' || k == 'y') {
+                            playerLimit = 40;
+                            skill_num--;
+                            break;
+                        }
+                        if (k == 'N' || k == 'n') {
+                            break;
+                        }
+                    }
+                } else {
+                    redraw(current, total, playerCards, playerSum, playerStand,
+                           computerCards, computerSum, computerStand,
+                           "技能值不足，第三局无法发动上限40技能");
+                    Sleep(800);
+                }
+            }
+
+            // 第四局：若已超上限但还没退最近摸到的牌，不立即判负，先给退牌机会
+            if (current == 4 && playerSum > playerLimit && canRetreatLastDraw) {
+                redraw(current, total, playerCards, playerSum, playerStand,
+                       computerCards, computerSum, computerStand,
+                       "你已超过36，可选择退牌(R)；也可要牌(Y)/停牌(N)");
+            }
+
+            string prompt;
+            if (current == 4) prompt = "要牌(Y) / 停牌(N) / 退牌(R)";
+            else prompt = "要牌(Y) 或 停牌(N)？";
             redraw(current, total, playerCards, playerSum, playerStand,
-                   computerCards, computerSum, computerStand, "要牌(Y) 或 停牌(N)？");
+                   computerCards, computerSum, computerStand, prompt);
             int key = _getch();
             if (key == 'Y' || key == 'y') {
                 int idx = deck[deckTop++];
                 playerCards.push_back(idx);
                 playerSum += getCardValue(CARDS[idx]);
-                if (playerSum > 36) {
+
+                if (current == 4) {
+                    lastDrawnPlayerCard = idx;
+                    canRetreatLastDraw = true;
+                    // 第四局摸牌后即使超36也暂不立刻判负，允许退牌
+                } else {
+                    if (playerSum > playerLimit) {
+                        chip_name--;
+                        redraw(current, total, playerCards, playerSum, playerStand,
+                               computerCards, computerSum, computerStand,
+                               "你超过" + to_string(playerLimit) + "了，你输了！");
+                        printCenteredColor(22, "按 Enter 继续", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+                        while (_getch() != 13);
+                        return;
+                    }
+                }
+            } else if (key == 'N' || key == 'n') {
+                // 第四局：超36但没有退牌修正，停牌则直接判负
+                if (playerSum > playerLimit) {
                     chip_name--;
                     redraw(current, total, playerCards, playerSum, playerStand,
-                           computerCards, computerSum, computerStand, "你超过36了，你输了！");
+                           computerCards, computerSum, computerStand,
+                           "你超过" + to_string(playerLimit) + "了，你输了！");
                     printCenteredColor(22, "按 Enter 继续", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
                     while (_getch() != 13);
                     return;
                 }
-            } else if (key == 'N' || key == 'n') {
                 playerStand = true;
+            } else if ((key == 'R' || key == 'r') && current == 4) {
+                if (skill_num < 2) {
+                    redraw(current, total, playerCards, playerSum, playerStand,
+                           computerCards, computerSum, computerStand,
+                           "技能值不足2点，无法退牌");
+                    Sleep(700);
+                    continue;
+                }
+                if (!canRetreatLastDraw || playerCards.empty() || playerCards.back() != lastDrawnPlayerCard) {
+                    redraw(current, total, playerCards, playerSum, playerStand,
+                           computerCards, computerSum, computerStand,
+                           "当前没有可退的刚摸到牌");
+                    Sleep(700);
+                    continue;
+                }
+
+                playerSum -= getCardValue(CARDS[lastDrawnPlayerCard]);
+                playerCards.pop_back();
+                lastDrawnPlayerCard = -1;
+                canRetreatLastDraw = false;
+                skill_num -= 2;
+
+                redraw(current, total, playerCards, playerSum, playerStand,
+                       computerCards, computerSum, computerStand,
+                       "退牌成功：未补抽新牌");
+                Sleep(700);
+            }
+
+            // 第四局：若超上限且没有可退牌机会，则判负
+            if (current == 4 && playerSum > playerLimit && !canRetreatLastDraw) {
+                chip_name--;
+                redraw(current, total, playerCards, playerSum, playerStand,
+                       computerCards, computerSum, computerStand,
+                       "你超过" + to_string(playerLimit) + "了，你输了！");
+                printCenteredColor(22, "按 Enter 继续", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+                while (_getch() != 13);
+                return;
             }
         }
 
@@ -157,10 +255,11 @@ void startBlackJack(int current, int total) {
                 int idx = deck[deckTop++];
                 computerCards.push_back(idx);
                 computerSum += getCardValue(CARDS[idx]);
-                if (computerSum > 36) {
+                if (computerSum > computerLimit) {
                     chip_name++;
                     redraw(current, total, playerCards, playerSum, playerStand,
-                           computerCards, computerSum, computerStand, "电脑超过36了，你赢了！");
+                           computerCards, computerSum, computerStand,
+                           "电脑超过" + to_string(computerLimit) + "了，你赢了！");
                     printCenteredColor(22, "按 Enter 继续", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
                     while (_getch() != 13);
                     return;

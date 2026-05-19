@@ -57,21 +57,37 @@ static void displayCardBack(int row, int col) {
     resetColor();
 }
 
-// 手牌等级：2=豹子（3张同季节），1=对子（2张同季节），0=散牌
+// 手牌等级：3=炸弹（4张同季节），2=豹子（3张同季节），1=对子（2张同季节），0=散牌
+static int seasonIndex(const string& season) {
+    if (season == "春") return 0;
+    if (season == "夏") return 1;
+    if (season == "秋") return 2;
+    return 3;
+}
+
 static int handRank(const vector<int>& idx) {
-    const string& s0 = CARDS[idx[0]].season;
-    const string& s1 = CARDS[idx[1]].season;
-    const string& s2 = CARDS[idx[2]].season;
-    if (s0 == s1 && s1 == s2) return 2;
-    if (s0 == s1 || s1 == s2 || s0 == s2) return 1;
+    int cnt[4] = {0, 0, 0, 0};
+    for (int cardIdx : idx) {
+        cnt[seasonIndex(CARDS[cardIdx].season)]++;
+    }
+    int mx = 0;
+    for (int i = 0; i < 4; i++) {
+        if (cnt[i] > mx) mx = cnt[i];
+    }
+    if (mx >= 4) return 3;
+    if (mx >= 3) return 2;
+    if (mx >= 2) return 1;
     return 0;
 }
 
 static int handSum(const vector<int>& idx) {
-    return CARDS[idx[0]].sum + CARDS[idx[1]].sum + CARDS[idx[2]].sum;
+    int total = 0;
+    for (int cardIdx : idx) total += CARDS[cardIdx].sum;
+    return total;
 }
 
 static string rankName(int rank) {
+    if (rank == 3) return "炸弹";
     if (rank == 2) return "豹子";
     if (rank == 1) return "对子";
     return "散牌";
@@ -81,7 +97,7 @@ static void redraw(int current, bool revealed,
                    const vector<int>& pCards, const vector<int>& cCards,
                    const string& status) {
     system("cls");
-    string header = "第 " + to_string(current) + " 局（" + roundSymbolName(current) + "局）三才弈  技能值: " + to_string(skill_num) + "  气运值: " + to_string(chip_name);
+    string header = "第 " + to_string(current) + " 局（" + roundSymbolName(current) + "局） 技能值: " + to_string(skill_num) + "  气运值: " + to_string(chip_name);
     printHLineColor(0, '=', FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
     printCenteredColor(0, header, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
     printHLineColor(1, '=', FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -89,7 +105,7 @@ static void redraw(int current, bool revealed,
     // 对手牌区 rows 2-9
     printCenteredColor(2, "对手手牌", FOREGROUND_RED | FOREGROUND_INTENSITY);
     int col = 4;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < (int)cCards.size(); i++) {
         if (revealed)
             displayCard(3, col, CARDS[cCards[i]]);
         else
@@ -106,14 +122,17 @@ static void redraw(int current, bool revealed,
     // 玩家牌区 rows 11-18
     printCenteredColor(11, "玩家手牌", FOREGROUND_GREEN | FOREGROUND_INTENSITY);
     col = 4;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < (int)pCards.size(); i++) {
         displayCard(12, col, CARDS[pCards[i]]);
         col += 12;
     }
     printCenteredColor(18, "合计: " + to_string(handSum(pCards)) + "  " + rankName(handRank(pCards)), FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 
     printHLineColor(19, '-', FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-    printCenteredColor(20, "O: 开牌        S: 发动技能", FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+    string skillText = "S: 发动技能";
+    if (current == 1) skillText = "S: 限定技能-换牌";
+    else if (current == 2) skillText = "S: 限定技能-双方各摸一张";
+    printCenteredColor(20, "O: 开牌        " + skillText, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 
     if (!status.empty())
         printCenteredColor(23, status, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -123,7 +142,7 @@ static void showResult(int current,
                        const vector<int>& pCards, const vector<int>& cCards,
                        const string& result) {
     system("cls");
-    string header = "第 " + to_string(current) + " 局（" + roundSymbolName(current) + "局）三才弈  技能值: " + to_string(skill_num) + "  气运值: " + to_string(chip_name);
+    string header = "第 " + to_string(current) + " 局（" + roundSymbolName(current) + "局） 技能值: " + to_string(skill_num) + "  气运值: " + to_string(chip_name);
     printHLineColor(0, '=', FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
     printCenteredColor(0, header, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
     printHLineColor(1, '=', FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -131,7 +150,7 @@ static void showResult(int current,
     // 对手牌
     printCenteredColor(2, "对手手牌", FOREGROUND_RED | FOREGROUND_INTENSITY);
     int col = 4;
-    for (int i = 0; i < 3; i++) { displayCard(3, col, CARDS[cCards[i]]); col += 12; }
+    for (int i = 0; i < (int)cCards.size(); i++) { displayCard(3, col, CARDS[cCards[i]]); col += 12; }
     printCenteredColor(9, "合计: " + to_string(handSum(cCards)) + "  " + rankName(handRank(cCards)), FOREGROUND_RED | FOREGROUND_INTENSITY);
 
     printHLineColor(10, '-', FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -139,7 +158,7 @@ static void showResult(int current,
     // 玩家牌
     printCenteredColor(11, "玩家手牌", FOREGROUND_GREEN | FOREGROUND_INTENSITY);
     col = 4;
-    for (int i = 0; i < 3; i++) { displayCard(12, col, CARDS[pCards[i]]); col += 12; }
+    for (int i = 0; i < (int)pCards.size(); i++) { displayCard(12, col, CARDS[pCards[i]]); col += 12; }
     printCenteredColor(18, "合计: " + to_string(handSum(pCards)) + "  " + rankName(handRank(pCards)), FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 
     printHLineColor(19, '-', FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -177,7 +196,20 @@ static void doSkillSwap(int current, vector<int>& pCards, vector<int>& cCards) {
         else if (k == '3') cSel = 2;
     }
     swap(pCards[pSel], cCards[cSel]);
+    skill_num -= 2;
+}
+
+static bool doSkillDrawOneEach(int current, const vector<int>& deck, int& drawPos,
+                               vector<int>& pCards, vector<int>& cCards) {
+    if (drawPos + 1 >= CARD_COUNT) return false;
+
+    pCards.push_back(deck[drawPos++]);
+    cCards.push_back(deck[drawPos++]);
     skill_num--;
+
+    redraw(current, false, pCards, cCards, "限定技能生效：双方各摸一张");
+    Sleep(700);
+    return true;
 }
 
 void startTriadGrace(int current, int total) {
@@ -191,6 +223,7 @@ void startTriadGrace(int current, int total) {
     }
     vector<int> pCards = {deck[0], deck[1], deck[2]};
     vector<int> cCards = {deck[3], deck[4], deck[5]};
+    int drawPos = 6;
 
     bool skillUsed = false;
     redraw(current, false, pCards, cCards, "请选择操作...");
@@ -230,15 +263,33 @@ void startTriadGrace(int current, int total) {
             doReveal();
             break;
         } else if (key == 'S' || key == 's') {
-            if (skill_num <= 0) {
-                redraw(current, false, pCards, cCards, "技能值不足，无法发动技能");
-            } else if (skillUsed) {
+            if (skillUsed) {
                 redraw(current, false, pCards, cCards, "本局已使用过技能");
             } else {
-                doSkillSwap(current, pCards, cCards);
-                skillUsed = true;
-                doReveal();
-                break;
+                if (current == 1) {
+                    if (skill_num < 2) {
+                        redraw(current, false, pCards, cCards, "技能值不足2点，无法发动第一局技能");
+                        continue;
+                    }
+                    doSkillSwap(current, pCards, cCards);
+                    skillUsed = true;
+                    doReveal();
+                    break;
+                }
+                if (current == 2) {
+                    if (skill_num < 1) {
+                        redraw(current, false, pCards, cCards, "技能值不足，无法发动第二局技能");
+                        continue;
+                    }
+                    if (!doSkillDrawOneEach(current, deck, drawPos, pCards, cCards)) {
+                        redraw(current, false, pCards, cCards, "牌堆不足，无法发动摸牌技能");
+                        continue;
+                    }
+                    skillUsed = true;
+                    doReveal();
+                    break;
+                }
+                redraw(current, false, pCards, cCards, "本局无可用限定技能");
             }
         }
     }

@@ -19,6 +19,7 @@
         "${workspaceFolder}/src/cards.cpp",
         "${workspaceFolder}/src/triad_grace.cpp",
         "${workspaceFolder}/src/blackjack.cpp",
+        "${workspaceFolder}/src/question.cpp",
         "-o",
         "${workspaceFolder}/game.exe"
       ],

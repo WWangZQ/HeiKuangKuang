@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "triad_grace.h"
 #include "blackjack.h"
+#include "question.h"
 using namespace std;
 
 // ===================== 【高级配色方案】 =====================
@@ -50,7 +51,7 @@ void showWelcome() {
     printCenteredColor(5, "作者: 25级软工3班 队长周灼霖 队员刘宇质", COLOR_STATUS);
     printHLineColor(6, '=', COLOR_BORDER);
     printCenteredColor(8, "技能值: " + to_string(skill_num) + "   气运值: " + to_string(chip_name), COLOR_HL);
-    printCenteredColor(10, "四局顺序：青龙局  白虎局  朱雀局  玄武局", COLOR_BORDER);
+    printCenteredColor(10, "四局顺序：四象归一  三才载物  两仪相合  万象杂象", COLOR_BORDER);
     printCenteredColor(12, "第一二局：五行局", COLOR_PLAYER);
     printCenteredColor(13, "第三四局：四象局", COLOR_OPPONENT);
     printHLineColor(15, '-', COLOR_STATUS);
@@ -81,6 +82,13 @@ int main(){
 
     showWelcome();
     for (int i = 1; i <= 4; i++) {
+        while (chip_name <= 0 || skill_num <= 0) {
+            askQuestionAndRewardIfCorrect();
+            if (!askWhetherContinueQuestioning()) {
+                break;
+            }
+        }
+
         if (i <= 2)
             startTriadGrace(i, 4);
         else
