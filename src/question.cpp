@@ -21,7 +21,7 @@ const Question QUESTIONS[QUESTION_COUNT] = {
 static void drawQuestionPanel(const Question& q, const string& tip) {
     system("cls");
     printHLineColor(1, '=', FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-    printCenteredColor(3, "状态异常：气运值或技能值为 0，需先答题", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+    printCenteredColor(3, "当前为答题环节", FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
     printHLineColor(5, '-', FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 
     printCenteredColor(7, "题目：" + q.prompt, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);

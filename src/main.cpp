@@ -82,10 +82,13 @@ int main(){
 
     showWelcome();
     for (int i = 1; i <= 4; i++) {
-        while (chip_name <= 0 || skill_num <= 0) {
+        bool keepQuestioning = (chip_name <= 0 || skill_num <= 0);
+        while (keepQuestioning) {
             askQuestionAndRewardIfCorrect();
-            if (!askWhetherContinueQuestioning()) {
-                break;
+            if (chip_name <= 0 || skill_num <= 0) {
+                keepQuestioning = true;
+            } else {
+                keepQuestioning = askWhetherContinueQuestioning();
             }
         }
 
