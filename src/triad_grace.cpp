@@ -57,7 +57,7 @@ static void displayCardBack(int row, int col) {
     resetColor();
 }
 
-// 手牌等级：3=炸弹（4张同季节），2=豹子（3张同季节），1=对子（2张同季节），0=散牌
+// 手牌等级：3=四象归一（4张同季节），2=三才载物（3张同季节），1=两仪相合（2张同季节），0=万象杂象
 static int seasonIndex(const string& season) {
     if (season == "春") return 0;
     if (season == "夏") return 1;
@@ -87,10 +87,10 @@ static int handSum(const vector<int>& idx) {
 }
 
 static string rankName(int rank) {
-    if (rank == 3) return "炸弹";
-    if (rank == 2) return "豹子";
-    if (rank == 1) return "对子";
-    return "散牌";
+    if (rank == 3) return "四象归一";
+    if (rank == 2) return "三才载物";
+    if (rank == 1) return "两仪相合";
+    return "万象杂象";
 }
 
 static void redraw(int current, bool revealed,

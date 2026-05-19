@@ -76,23 +76,23 @@ void redraw(int current, int total,
     printCenteredColor(0, header, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
     printHLineColor(1, '=', FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 
-    // 玩家牌区（rows 3-10）
-    printCenteredColor(3, "玩家手牌", FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+    // 电脑牌区（rows 3-10）
+    printCenteredColor(3, "电脑手牌", FOREGROUND_RED | FOREGROUND_INTENSITY);
     int col = 4;
-    for (int i = 0; i < (int)pCards.size() && col < 70; i++) {
-        displayCard(4, col, CARDS[pCards[i]]);
-        col += 12;
-    }
-    printCenteredColor(11, "总和：" + to_string(pSum) + (pStand ? "  已停牌" : ""), FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-
-    // 电脑牌区（rows 13-20）
-    printCenteredColor(13, "对手手牌", FOREGROUND_RED | FOREGROUND_INTENSITY);
-    col = 4;
     for (int i = 0; i < (int)cCards.size() && col < 70; i++) {
-        displayCard(14, col, CARDS[cCards[i]]);
+        displayCard(4, col, CARDS[cCards[i]]);
         col += 12;
     }
-    printCenteredColor(21, "总和：" + to_string(cSum) + (cStand ? "  已停牌" : ""), FOREGROUND_RED | FOREGROUND_INTENSITY);
+    printCenteredColor(11, "总和：" + to_string(cSum) + (cStand ? "  已停牌" : ""), FOREGROUND_RED | FOREGROUND_INTENSITY);
+
+    // 玩家牌区（rows 13-20）
+    printCenteredColor(13, "玩家手牌", FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+    col = 4;
+    for (int i = 0; i < (int)pCards.size() && col < 70; i++) {
+        displayCard(14, col, CARDS[pCards[i]]);
+        col += 12;
+    }
+    printCenteredColor(21, "总和：" + to_string(pSum) + (pStand ? "  已停牌" : ""), FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 
     if (!status.empty())
         printCenteredColor(23, status, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
